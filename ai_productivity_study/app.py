@@ -2,7 +2,7 @@ import streamlit as st
 import time
 import uuid
 import json
-
+import random
 from game_logic import PuzzleGenerator, AIAssistant, run_trial
 from data_logger import DataLogger
 
