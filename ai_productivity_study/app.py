@@ -87,7 +87,6 @@ def run_single_trial():
     
     # Generate puzzle once per trial
     if st.session_state.current_puzzle is None:
-        # Determine condition randomly (50% AI assistance)
         has_ai = random.choice([True, False])
         condition = "AI" if has_ai else "No-AI"
         
@@ -97,7 +96,8 @@ def run_single_trial():
             'condition': condition,
             'has_ai': has_ai
         }
-        st.session_state.used_puzzles.append(puzzle['question'])
+        # Track unique puzzle ID to prevent repetition
+        st.session_state.used_puzzles.append(puzzle['id'])
         st.session_state.puzzle_start_time = time.time()
         st.session_state.hints_used = 0
         st.session_state.show_hint = False
@@ -125,7 +125,7 @@ def run_single_trial():
         submitted = st.form_submit_button("Submit Answer")
         
         if submitted:
-            time_taken = round(time.time() - st.session_state.puzzle_start_time, 2)
+            time_taken = round(time.time() - st.puzzle_start_time if hasattr(st, 'puzzle_start_time') else time.time() - st.session_state.puzzle_start_time, 2)
             is_correct = check_answer(user_answer, puzzle['answer'])
             
             trial_data = {
@@ -142,11 +142,10 @@ def run_single_trial():
                 "response_correct": is_correct
             }
             
-            # Save data
+            # Save data locally on server
             logger.log_trial(**trial_data)
             st.session_state.results.append(trial_data)
             
-            # Show feedback briefly
             if is_correct:
                 st.success(f"Correct! ({time_taken}s)")
             else:
@@ -178,7 +177,7 @@ def show_results():
         
         st.dataframe(df[['trial_number', 'condition', 'puzzle_type', 'time_taken', 'response_correct']])
         
-        # Download button for data
+        # Immediate participant download
         csv_data = df.to_csv(index=False)
         st.download_button(
             label="📥 Download Session Results (CSV)",
@@ -186,6 +185,26 @@ def show_results():
             file_name=f"results_{st.session_state.participant_id}.csv",
             mime="text/csv"
         )
+
+    # Secret Admin Data Retrieval Portal
+    st.markdown("---")
+    with st.expander("🔐 Admin Data Export (Researcher Only)"):
+        admin_pass = st.text_input("Enter Admin Password:", type="password")
+        if admin_pass == "stir2026":  # You can change this password
+            all_data = logger.get_all_data()
+            if not all_data.empty:
+                st.write(f"**Total Records Logged:** {len(all_data)}")
+                st.dataframe(all_data.tail(10))
+                st.download_button(
+                    label="📥 Download Full Dataset (All Participants)",
+                    data=all_data.to_csv(index=False),
+                    file_name="full_study_results.csv",
+                    mime="text/csv"
+                )
+            else:
+                st.info("No participant records logged yet.")
+        elif admin_pass:
+            st.error("Incorrect password.")
         
     if st.button("Start New Session"):
         st.session_state.phase = 'consent'
