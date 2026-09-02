@@ -17,22 +17,20 @@ class DataLogger:
         if not self.csv_file_path.exists():
             df = pd.DataFrame(columns=[
                 "participant_id", "timestamp", "trial_number", "condition", 
-                "puzzle_type", "time_taken", "correct_answer", "hints_used", 
-                "has_ai_assistance", "response_correct"
+                "puzzle_type", "complexity", "time_taken", "correct_answer", 
+                "user_answer", "hints_used", "has_ai_assistance", 
+                "is_hallucinated", "confidence_level", "response_correct"
             ])
             df.to_csv(self.csv_file_path, index=False)
 
     def log_trial(self, **kwargs):
-        # Guarantee parent directory exists
         os.makedirs(self.csv_file_path.parent, exist_ok=True)
         
-        # Accept dictionary or keyword arguments seamlessly
         if len(kwargs) == 1 and isinstance(next(iter(kwargs.values())), dict):
             data = next(iter(kwargs.values()))
         else:
             data = kwargs
 
-        # Load existing data, append new row, and save
         df_new = pd.DataFrame([data])
         if self.csv_file_path.exists():
             df_existing = pd.read_csv(self.csv_file_path)
@@ -40,3 +38,12 @@ class DataLogger:
             df_updated.to_csv(self.csv_file_path, index=False)
         else:
             df_new.to_csv(self.csv_file_path, index=False)
+
+    def get_all_data(self):
+        """Returns all collected research data as a DataFrame."""
+        if self.csv_file_path.exists():
+            try:
+                return pd.read_csv(self.csv_file_path)
+            except Exception:
+                return pd.DataFrame()
+        return pd.DataFrame()
