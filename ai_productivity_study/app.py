@@ -13,6 +13,27 @@ st.set_page_config(
     layout="centered"
 )
 
+# Custom CSS for UI display on school Chromebooks
+st.markdown("""
+    <style>
+    .stButton>button {
+        width: 100%;
+        height: 2.8rem;
+        font-size: 16px !important;
+        font-weight: 600;
+        border-radius: 8px;
+    }
+    .stFormSubmitButton>button {
+        width: 100%;
+        height: 3rem;
+        font-size: 18px !important;
+        font-weight: bold;
+        background-color: #0066cc;
+        color: white;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 logger = DataLogger()
 
 # Initialize session state variables
@@ -97,7 +118,10 @@ def run_single_trial():
     current = st.session_state.current_puzzle
     puzzle = current['puzzle']
     
-    st.caption(f"Category: {puzzle['complexity']} | Type: {puzzle['type']}")
+    # Calculate live elapsed time without resetting across widget toggles
+    live_elapsed = round(time.time() - st.session_state.puzzle_start_time, 1)
+    
+    st.caption(f"Category: {puzzle['complexity']} | Type: {puzzle['type']} | ⏱️ Elapsed: {live_elapsed}s")
     st.markdown(f"### Question:\n{puzzle['question']}")
     
     # AI Hint Interface
