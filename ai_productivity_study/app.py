@@ -22,6 +22,7 @@ st.markdown("""
         font-size: 16px !important;
         font-weight: 600;
         border-radius: 8px;
+        transition: all 0.2s ease-in-out;
     }
     .stFormSubmitButton>button {
         width: 100%;
@@ -30,6 +31,13 @@ st.markdown("""
         font-weight: bold;
         background-color: #0066cc;
         color: white;
+        border-radius: 8px;
+    }
+    div[data-testid="stMarkdownContainer"] > h3 {
+        background-color: #f0f2f6;
+        padding: 16px;
+        border-radius: 8px;
+        border-left: 5px solid #0066cc;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -118,7 +126,7 @@ def run_single_trial():
     current = st.session_state.current_puzzle
     puzzle = current['puzzle']
     
-    # Calculate live elapsed time without resetting across widget toggles
+    # Calculate live elapsed time without resetting across widget reruns
     live_elapsed = round(time.time() - st.session_state.puzzle_start_time, 1)
     
     st.caption(f"Category: {puzzle['complexity']} | Type: {puzzle['type']} | ⏱️ Elapsed: {live_elapsed}s")
